@@ -11,7 +11,7 @@ const todoSchema = new mongoose.Schema({
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // referencing User model to connect to users collection in MongoDB.
+    ref: "User", // refer user model
     required: true,
   },
 });

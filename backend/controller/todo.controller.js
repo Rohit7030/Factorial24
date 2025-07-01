@@ -28,15 +28,25 @@ export const getTodos = async (req, res) => {
 
 export const updateTodo = async (req, res) => {
   try {
-    const todo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.status(201).json({ message: "Todo Updated Successfully", todo });
+    // Find todo owned by the user
+    const todo = await Todo.findOne({ _id: req.params.id, user: req.user._id });
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found or unauthorized" });
+    }
+
+    // Only update fields that are sent
+    if (req.body.text !== undefined) todo.text = req.body.text;
+    if (req.body.completed !== undefined) todo.completed = req.body.completed;
+
+    const updatedTodo = await todo.save();
+    res.status(200).json({ message: "Todo Updated Successfully", todo: updatedTodo });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ message: "Error occuring in todo updating" });
+    res.status(400).json({ message: "Error occurring in todo updating" });
   }
 };
+
 
 export const deleteTodo = async (req, res) => {
   try {
@@ -50,3 +60,5 @@ export const deleteTodo = async (req, res) => {
     res.status(400).json({ message: "Error occuring in todo Deletion" });
   }
 };
+
+

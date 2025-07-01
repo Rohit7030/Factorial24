@@ -13,7 +13,7 @@ function Signup() {
     e.preventDefault();
     try {
       const { data } = await axios.post(
-        "http://localhost:4001/user/signup",
+        "http://localhost:4001/user/signup/",
         {
           username,
           email,
@@ -34,8 +34,9 @@ function Signup() {
       setEmail("");
       setPassword("");
     } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.errors || "User registration failed");
+      const err = error.response?.data?.errors;
+      toast.error(Array.isArray(err) ? err[0] : err || "User registration failed");
+
     }
   };
 
@@ -82,7 +83,7 @@ function Signup() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Type Username"
+                  placeholder="Password"
                 />
               </div>
 

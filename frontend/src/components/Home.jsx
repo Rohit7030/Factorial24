@@ -8,6 +8,8 @@ function Home() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [newTodo, setNewTodo] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState(null);
 
   useEffect(() => {
     const fetchtodos = async () => {
@@ -49,6 +51,26 @@ function Home() {
       setNewTodo("");
     } catch (error) {
       setError("Failed to create todo");
+    }
+  };
+
+  const todoUpdate = async () => {
+    if (!newTodo || !editingTodoId) return;
+
+    try {
+      const response = await axios.put(
+        `http://localhost:4001/todo/update/${editingTodoId}`,
+        { text: newTodo },
+        { withCredentials: true }
+      );
+
+      const updated = response.data.todo;
+      setTodos(todos.map((t) => (t._id === editingTodoId ? updated : t)));
+      setNewTodo(""); // Clear input
+      setIsEditing(false); // Exit edit mode
+      setEditingTodoId(null); // Clear edit ID
+    } catch (error) {
+      setError("Failed to update todo");
     }
   };
 
@@ -99,9 +121,16 @@ function Home() {
 
   const remainingTodos = todos.filter((todo) => !todo.completed).length;
 
+  const todoEdit = (id) => {
+    const todoToEdit = todos.find((t) => t._id === id);
+    setNewTodo(todoToEdit.text); // Pre-fill input field
+    setEditingTodoId(id); // Store ID of the todo being edited
+    setIsEditing(true); // Enable edit mode
+  };
+
   return (
-    <div className=" my-10 bg-gray-100 max-w-lg lg:max-w-xl rounded-lg shadow-lg mx-8 sm:mx-auto p-6">
-      <h1 className="text-2xl font-semibold text-center">Todo App</h1>
+    <div className=" my-10 bg-gray-300 max-w-lg lg:max-w-xl rounded-lg shadow-lg mx-8 sm:mx-auto p-6">
+      <h1 className="text-2xl font-semibold text-center p-6">TaskFlow</h1>
       <div className="flex mb-4">
         <input
           type="text"
@@ -109,13 +138,17 @@ function Home() {
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && todoCreate()}
-          className="flex-grow p-2 border rounded-l-md focus:outline-none"
+          className="flex-grow p-2 border rounded-l-md focus:outline-blue-500"
         />
         <button
-          onClick={todoCreate}
-          className="bg-blue-600 border rounded-r-md text-white px-4 py-2 hover:bg-blue-900 duration-300"
+          onClick={isEditing ? todoUpdate : todoCreate}
+          className={`${
+            isEditing
+              ? "bg-yellow-600 hover:bg-yellow-800"
+              : "bg-blue-600 hover:bg-blue-900"
+          } border rounded-r-md text-white px-4 py-2 duration-300`}
         >
-          Add
+          {isEditing ? "Update" : "Add"}
         </button>
       </div>
       {loading ? (
@@ -126,7 +159,7 @@ function Home() {
         <div className="text-center text-red-600 font-semibold">{error}</div>
       ) : (
         <ul className="space-y-2">
-          {todos.map((todo, index) => (
+          {todos.reverse().map((todo, index) => (
             <li
               key={todo._id || index}
               className="flex items-center justify-between p-3 bg-gray-100 rounded-md"
@@ -148,12 +181,21 @@ function Home() {
                   {todo.text}
                 </span>
               </div>
-              <button
-                onClick={() => todoDelete(todo._id)}
-                className="text-red-500 hover:text-red-800 duration-300"
-              >
-                Delete
-              </button>
+              <div className="flex justify-between gap-6">
+                <button
+                  onClick={() => todoEdit(todo._id)}
+                  className="text-green-500 hover:text-green-800 duration-300"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => todoDelete(todo._id)}
+                  className="text-red-500 hover:text-red-800 duration-300"
+                >
+                  Delete
+                </button>
+                
+              </div>
             </li>
           ))}
         </ul>
