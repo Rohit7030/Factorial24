@@ -14,6 +14,11 @@ const todoSchema = new mongoose.Schema({
     ref: "User", // refer user model
     required: true,
   },
+  assignedBy: {
+  type: String,
+  default: "",
+},
+
 });
 
 const Todo = mongoose.model("Todo", todoSchema);
